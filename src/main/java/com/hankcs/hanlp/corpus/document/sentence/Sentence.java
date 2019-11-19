@@ -61,6 +61,26 @@ public class Sentence implements Serializable, Iterable<IWord>
     }
 
     /**
+     * 转换为空格分割的只有名词标签的String
+     *
+     * @return
+     */
+    public String toStringOnlyNoun()
+    {
+        StringBuilder sb = new StringBuilder(size() * 4);
+        int i = 1;
+        for (IWord word : wordList)
+        {
+            if(word.getLabel().contains("n")) {
+                sb.append(word);
+                if (i != wordList.size()) sb.append(' ');
+            }
+            ++i;
+        }
+        return sb.toString();
+    }
+
+    /**
      * 转换为空格分割无标签的String
      *
      * @return
