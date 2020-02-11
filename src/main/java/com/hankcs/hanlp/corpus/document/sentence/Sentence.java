@@ -71,8 +71,8 @@ public class Sentence implements Serializable, Iterable<IWord>
         int i = 1;
         for (IWord word : wordList)
         {
-            if(word.getLabel().contains("n")) {
-                sb.append(word);
+            if(word.getLabel().contains("n") && word.getValue()!="\n") {
+                sb.append(word.getValue());
                 if (i != wordList.size()) sb.append(' ');
             }
             ++i;

@@ -46,6 +46,11 @@ public class CoNLLWord
      */
     public String NAME;
 
+    /*
+    * 是否被访问过
+    * */
+    public int VISIT;
+
     /**
      * 根节点
      */

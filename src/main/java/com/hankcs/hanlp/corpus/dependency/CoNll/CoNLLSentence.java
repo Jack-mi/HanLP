@@ -161,4 +161,20 @@ public class CoNLLSentence implements Iterable<CoNLLWord>
         }
         return result;
     }
+
+    /**
+     * 找出特定依存关系的一个子节点
+     * @param word
+     * @param relation
+     * @return
+     */
+    public CoNLLWord findOneChildren(CoNLLWord word, String relation)
+    {
+        for (CoNLLWord other : this)
+        {
+            if (other.HEAD == word && other.DEPREL.equals(relation))
+                return other;
+        }
+        return null;
+    }
 }
