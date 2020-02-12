@@ -32,15 +32,29 @@ public class Test {
         +"第二篇是售前故事，售前的工作内容主要涉及1、项目&产品支持2、线索分析3、售前培训4、信息分析5、日常工作6、附属工作，希望通过售前和各位同事的努力之后，将公司对外标书的制定能力以及达标的能力进一步提升。\n"
         +"第三篇是甲方的心思，涉及到1、与人沟通的开场白2、需求潜排序3、需求动机挖掘4、在谈判过程中，有顾问专家在场，要安抚、赞扬5、三天成为谈判专家：自身形象；沉稳地谈吐；了解这个行业的业务领域及技术线；了解这个的优势和缺点（缺点更重要）；6、与客户做朋友，交到朋友，带来持续的合作；7、完美的陷阱，向客户介绍时将客户不太关注的缺点，不能说这个方案是完美无瑕，客户心里预防是越完美就越有顾虑。8、给客户讲案例故事：建议按照案例的方式与客户去讲故事，可以看客户的反应，用了我们的方案的改善情况；标准产品及定制项目的优势，没有使用我们方案的客户；不要一个劲讲自己的产品，以免产生阻隔。"
     );
-    public static String st = ("而售前的角度：恒天是一家神一样的单位，无所不能");
+    public static String st1 = ("IMS团队致力于为客户提供高效、高品质服务，提供专业的一站式企业基础设施和IT运维解决方案");
+    public static String st2 = ("团队服务专家拥有国际通行的专业认证，如OCP、CCNP、RHCE、MCSE、ITIL、ICSD、JIA、JIS等");
+    public static String st3 = ("恒天软件拥有CMMI软件质量管理五级资质及CNAS资质认证，团队聚集了一批技术经验丰富、自主创新能力强的研发队伍，在软件质量保证领域有非常成熟的技术能力，致力于为客户提供贯穿于整个软件开发生命周期的专业软件测试、咨询及评估服务");
 
     // 句法结构基本参数
-    private static IDependencyParser parser;
-    private static CoNLLSentence initalSentence;
-    private static String[] sentenceInput;
-    private static int triplenum;
+    private static CoNLLSentence initalSentence;    // 初始文本
+    private static String[] sentenceInput;          // 分隔后的句子集
+    private static String curSentence;              // 当前句子
+    private static IDependencyParser parser;        // 依存句法分析器
+    private static CoNLLWord[] wordArraywithRoot;   // 句法分析结果
+    private static int triplenum;                   // 抽取三元组的计数
     private static Set<String> ChinesePassive = new HashSet<String>();
     private static Set<String> ChineseNegative = new HashSet<String>();
+
+    // 当前可能组合的三元组（source, rel, des）
+    private static String rel;          // 关系词
+    private static int relstart;
+    private static int relend;
+    private static String source;       // 主语
+    private static CoNLLWord csource;   // 主语词
+    private static String des;          // 宾语
+    private static String sup;
+    private static boolean fin1;        // 是否是第一轮动宾结构
 
     private static void initialParameters(String initialSentence) {
         // 初始化“被动词”集合
@@ -59,119 +73,112 @@ public class Test {
         ChineseNegative.add("别");
 
         // 分割句子
+        initialSentence = initialSentence.trim();
         sentenceInput = initialSentence.split("!|。|\n");
     }
 
-    public static CoNLLSentence docNER(String curSentence)
-    {
-        // 依存句法分析器
-        parser = new NeuralNetworkDependencyParser();
-        initalSentence = parser.parse(curSentence);
-
-        // 先进行NER,其他词性的词不变
-        CoNLLWord[] wordArraywithRoot = initalSentence.getWordArrayWithRoot();
-        List<CoNLLWord> middle = new ArrayList<CoNLLWord>();
-        for (int i = 0; i < wordArraywithRoot.length; i++)
-        {
-            CoNLLWord word = wordArraywithRoot[i];
-            CoNLLWord nword = word;
-            if(word.POSTAG.contains("n") || word.POSTAG.contains("r") || word.POSTAG.contains("nr") || word.POSTAG.contains("ns") || word.POSTAG.contains("q") || word.POSTAG.contains("nt") ||word.POSTAG.contains("m")|| word.POSTAG.contains("nz") || word.POSTAG.contains("t") || word.POSTAG.contains("j") || word.POSTAG.contains("N")) {
-                if (word.VISIT == 1) {
-                    continue;
-                }
-
-                // 以该名词为核心构建名词
-                String tar = "";
-                List<CoNLLWord> sup1 = initalSentence.findChildren(word);
-                for (int k = 0;k < sup1.size(); k++) {
-                    CoNLLWord next = sup1.get(k);
-                    if (next.VISIT == 1) {
-                        continue;
-                    }
-                    next.VISIT = 1;
-                    CoNLLWord child = initalSentence.findOneChildren(next, "定中关系");
-                    while(child != null) {
-                        if (child.VISIT == 1) {
-                            child = initalSentence.findOneChildren(child, "定中关系");
-                            continue;
-                        }
-                        tar += child.LEMMA;
-                        child.VISIT = 1;
-                        child = initalSentence.findOneChildren(child, "定中关系");
-                    }
-                    if (next.DEPREL.equals("右附加关系")) {
-                        word.LEMMA += next.LEMMA;
-                    } else {
-                        tar += sup1.get(k).LEMMA;
-                    }
-                }
-
-                if (tar != "") {
-                    tar += word.LEMMA;
-                    nword.LEMMA = tar;
-                    nword.LEMMA.replace("\n"," ");
-                    nword.NAME = nword.LEMMA;
-                    nword.VISIT = 0;
-                    nword.POSTAG = "n";
-                }
-            }
-            middle.add(nword);
-        }
-
-        List<Term> middleX = new ArrayList<Term>();
-        for (int i = 0; i < middle.size(); i++) {
-            CoNLLWord cur = middle.get(i);
-            Term term = new Term(cur.LEMMA, Nature.create(cur.POSTAG));
-            if (cur.VISIT == 0)
-                middleX.add(term);
-        }
-
-        // NER之后重新句法分析
-        CoNLLSentence entitySentence = parser.parse(middleX);
-
-//        for (int i = entitySentence.word.length-1; i >= 0;i--) {
-//            CoNLLWord word = entitySentence.word[i];
-//            CoNLLWord hword = word.HEAD;
-//            System.out.printf("%s[%s] --(%s)--> %s[%s]\n", word.LEMMA, word.POSTAG, word.DEPREL, hword.LEMMA, hword.POSTAG);
-//        }
-//
-//        // 输出CoNLL格式的表格
-        System.out.println(entitySentence);
-        return entitySentence;
-    }
-
-    private static String findVerbSupplement(CoNLLWord verb) {
-        List<CoNLLWord> sup1 = initalSentence.findChildren(verb, "状中关系");
+    private static String findVerbPreSupplement(CoNLLWord verb) {
+        List<CoNLLWord> out = initalSentence.findChildren(verb, "状中结构");
         String ans = "";
-        for (int i = 0;i < sup1.size(); i++) {
-            CoNLLWord curw = sup1.get(i);
-            List<String> sup2 = new ArrayList<String>();
-            CoNLLWord child = initalSentence.findOneChildren(curw, "状中关系");
-            while(child != null && (child.POSTAG.contains("v")||child.POSTAG.contains("c"))) {
-                sup2.add(child.LEMMA);
-                child = initalSentence.findOneChildren(child, "状中关系");
+        int cnt = 0;
+        // 获取每一个完整的状中结构
+        for (CoNLLWord c:out) {
+            // 找到关系词的第一个位置
+            CoNLLWord startc = c;
+            if (cnt == 0) {
+                int cur = findIdx(c);
+                relstart = cur<relstart?cur:relstart;
+                cnt = 1;
             }
-            for (int j = 0; j < sup2.size(); j--) {
-                ans += sup2.get(j);
+            // 提取介宾结构的状语
+            String startword = startc.LEMMA;
+            CoNLLWord endc = initalSentence.findOneChildren(startc, "介宾关系");
+            if (endc == null) {
+                ans += startc.LEMMA;
+                continue;
             }
-            ans += sup1.get(i).LEMMA;
+            String endword = endc.LEMMA;
+            int i;
+            for (i = curSentence.indexOf(startword); i != curSentence.indexOf(endword); i++) {
+                ans += curSentence.substring(i, i+1);
+            }
+            ans += endword;
+            break;
         }
         return ans;
     }
 
-    private static CoNLLWord findDes(CoNLLWord verb) {
-        CoNLLWord child = initalSentence.findOneChildren(verb, "动宾关系");
-        while(child != null && (!(child.POSTAG.contains("n")||child.POSTAG.contains("r"))) ) {
-            child = initalSentence.findOneChildren(child, "动宾关系");
+    private static String findVerbPostSupplement(CoNLLWord verb) {
+        List<CoNLLWord> sup = initalSentence.findChildren(verb);
+        String ans = "";
+        for (int i = 0; i < sup.size(); i++) {
+            CoNLLWord c = sup.get(i);
+            if (c.DEPREL.equals("标点符号"))
+                break;
+            if (c.DEPREL.equals("右附加关系")) {
+                ans += c.LEMMA;
+                int ii = findIdx(c);
+                relend = ii>relend?ii:relend;
+            }
         }
-        return child;
+        return ans;
+    }
+
+    private static String findSubject(CoNLLWord noun, boolean first) {
+        String ans = "";
+        if (first) {
+            for (int idx = 1; idx < relstart; idx++) {
+                ans += wordArraywithRoot[idx].LEMMA;
+            }
+        } else {
+            int idx = 0;
+            for (int i = findIdx(noun); i > 0; i--) {
+                CoNLLWord c = wordArraywithRoot[i];
+                if (c.DEPREL.equals("标点符号") && !c.LEMMA.equals("、") && !c.LEMMA.equals("(") && !c.LEMMA.equals(")")) {
+                    idx = i;
+                    break;
+                }
+            }
+            for (idx++; idx < relstart; idx++) {
+                ans += wordArraywithRoot[idx].LEMMA;
+            }
+        }
+        return ans;
+    }
+
+    private static String findObject(CoNLLWord noun) {
+        String ans = "";
+        int idx = wordArraywithRoot.length;
+        for (int i = findIdx(noun); i < idx; i++) {
+            CoNLLWord c = wordArraywithRoot[i];
+            if (c.DEPREL.equals("标点符号") && !c.LEMMA.equals("、") && !c.LEMMA.equals("(") && !c.LEMMA.equals(")")) {
+                idx = i;
+                break;
+            }
+        }
+        for (int i = relend+1; i < idx; i++) {
+            ans += wordArraywithRoot[i].LEMMA;
+        }
+        return ans;
+    }
+
+    private static int findIdx(CoNLLWord tar) {
+        int ans = -1;
+        for (int i = 0; i < wordArraywithRoot.length; i++) {
+            if (wordArraywithRoot[i] == tar) {
+                ans = i;
+                break;
+            }
+        }
+        return ans;
     }
 
     public static void docSyntacticParsing(String curString) throws Exception
     {
-        // 首先进行NER
-        CoNLLSentence entitySentence = docNER(curString);
-        CoNLLWord[] wordArraywithRoot = entitySentence.getWordArrayWithRoot();
+        // 依存句法分析
+        parser = new NeuralNetworkDependencyParser();
+        initalSentence = parser.parse(curString);
+        wordArraywithRoot = initalSentence.getWordArrayWithRoot();
 
         // 特殊句式参数
         CoNLLWord neg = null;
@@ -189,119 +196,93 @@ public class Test {
             }
 
             // 不要标点符号
-            if (word.POSTAG.equals("w") || hword.POSTAG.equals("w")) {
-                continue;
-            }
+//            if (word.POSTAG.equals("w") || hword.POSTAG.equals("w"))
+//                continue;
 
-            // 当前可能组合的三元组
-            String rel;
-            CoNLLWord source;
-            CoNLLWord des;
-            String sup;
+            // 对当前word即宾语的限制,过滤形素词
+            if (word.POSTAG.contains("A") || word.POSTAG.contains("g"))
+                continue;
 
             // 输出当前的依存关系
-//            System.out.printf("%s[%s] --(%s)--> %s[%s]\n", word.LEMMA, word.POSTAG, word.DEPREL, hword.LEMMA, hword.POSTAG);
-            // 基本关系
-            if (word.DEPREL.equals("主谓关系")) {
-                // relation:谓语动词
-                sup = findVerbSupplement(hword);
-                hword.LEMMA = sup + hword.LEMMA;
-                rel = hword.LEMMA;
-                // source:主谓关系
-                source = initalSentence.findOneChildren(hword, "主谓关系");
-                // des:动宾关系
-                des = findDes(hword);
-//                sup = findNounSupplement(des);
-//                if (des != null) {
-//                    des.LEMMA = sup + des.LEMMA;
-//                }
+            System.out.printf("%s[%s] --(%s)--> %s[%s]\n", word.LEMMA, word.POSTAG, word.DEPREL, hword.LEMMA, hword.POSTAG);
 
-                if (source != null && des != null) {
-                    triplenum++;
-                    System.out.printf("triple[%d](%s : %s : %s)\n", triplenum, source.LEMMA, rel, des.LEMMA);
-                }
-            }
+            // 实体-关系抽取
+            if (word.DEPREL.equals("动宾关系")) {
+                if (fin1 == false) {
+                    fin1 = true;
 
-            // 特殊句式：否定关系
-            if (word.DEPREL.equals("主谓关系") && (hword.POSTAG.equals("c") || hword.POSTAG.equals("d"))) {
-                neg = hword;
-                // relation:谓语动词
-                rel = hword.LEMMA;
-                if (pas != null) {
-                    rel += "被";
-                    rel += pas.LEMMA;
-                }
-                // source:主谓关系
-                source = initalSentence.findOneChildren(hword, "主谓关系");
-                // des:动宾关系
-                if (pas != null) {
-                    hword = pas;
-                    des = findDes(hword);
-                    if (des == null) {
-                        CoNLLWord other2 = initalSentence.findOneChildren(hword, "并列关系");
-                        des = findDes(other2);
+                    // relation:谓语动词
+                    relstart = findIdx(hword);
+                    relend = relstart;
+                    sup = findVerbPreSupplement(hword);
+                    String t = sup + hword.LEMMA;
+                    sup = findVerbPostSupplement(hword);
+                    t += sup;
+                    rel = t;
+
+                    // source:主谓关系
+                    CoNLLWord tmpn = initalSentence.findOneChildren(hword, "主谓关系");
+                    if (tmpn == null)
+                        continue;
+                    csource = tmpn;
+                    source = findSubject(tmpn, true);
+
+                    // des:动宾关系
+                    des = findObject(word);
+
+                    // 抽取三元组
+                    if (!source.isEmpty() && !rel.isEmpty() && !des.isEmpty()) {
+                        triplenum++;
+                        System.out.printf("triple[%d](%s : %s : %s)\n", triplenum, source, rel, des);
+                    }
+
+                } else {
+                    // relation:谓语动词
+                    relstart = findIdx(hword);
+                    relend = relstart;
+                    sup = findVerbPreSupplement(hword);
+                    String t = sup + hword.LEMMA;
+                    sup = findVerbPostSupplement(hword);
+                    t += sup;
+                    rel = t;
+
+                    // source:如果同之前的关系不一样，要重新提取
+                    CoNLLWord tmpn = initalSentence.findOneChildren(hword, "主谓关系");
+                    if (tmpn == null)
+                        tmpn = csource;
+                    if (tmpn != csource) {
+                        source = findSubject(tmpn, false);
+                        csource = tmpn;
+                    }
+
+                    // des:动宾关系
+                    des = findObject(word);
+
+                    // 抽取三元组
+                    if (!source.isEmpty() && !rel.isEmpty() && !des.isEmpty()) {
+                        triplenum++;
+                        System.out.printf("triple[%d](%s : %s : %s)\n", triplenum, source, rel, des);
                     }
                 }
-                else {
-                    des = findDes(hword);
-//                    sup = findNounSupplement(des);
-//                    if (des != null)
-//                        des.LEMMA = sup + des.LEMMA;
-                }
 
-                if (source != null && des != null) {
-                    triplenum++;
-                    System.out.printf("triple[%d](%s : %s : %s)\n", triplenum, source.LEMMA, rel, des.LEMMA);
-                }
-            }
-
-            // 特殊句式：被动关系
-            if (hword.POSTAG.contains("v") && word.DEPREL.equals("状中结构") && word.POSTAG.equals("p")) {
-                pas = hword;
-                // relation:被+动词
-                rel = word.LEMMA+hword.LEMMA;
-                CoNLLWord child = initalSentence.findOneChildren(hword, "动宾关系");
-                if (child != null) {
-                    rel += child.LEMMA;
-                }
-                List<CoNLLWord> others = initalSentence.findChildren(hword, "并列关系");
-                for (int k = 0;k < others.size(); k++) {
-                    rel += others.get(k).LEMMA;
-                }
-                if (neg != null) {
-                    rel = neg.LEMMA + rel;
-                }
-                // source:前置宾语
-                source = initalSentence.findOneChildren(hword, "前置宾语");
-                if (neg != null) {
-                    source = initalSentence.findOneChildren(neg, "主谓关系");
-                }
-
-                // des:动宾关系
-                des = findDes(hword);
-                if (des == null) {
-                    CoNLLWord other2 = initalSentence.findOneChildren(hword, "并列关系");
-                    des = findDes(other2);
-//                    sup = findNounSupplement(des);
-//                    if (des != null) {
-//                        des.LEMMA = sup + des.LEMMA;
-//                    }
-                }
-
-                if (source != null && des != null) {
-                    triplenum++;
-                    System.out.printf("triple[%d](%s : %s : %s)\n", triplenum, source.LEMMA, rel, des.LEMMA);
-                }
             }
         }
     }
 
     public static void main(String[] args) throws Exception {
-        initialParameters(st);
+        initialParameters(s1);
         for (int i = 0; i < sentenceInput.length; i++) {
             System.out.printf("---------------------------No.%d---------------------------\n",i);
-            String curSentence = sentenceInput[i];
+            curSentence = sentenceInput[i];
             System.out.println(curSentence);
+            // 句式处理
+            rel = "";
+            source = "";
+            csource = null;
+            des = "";
+            sup = "";
+            fin1 = false;
+            curSentence = curSentence.trim();
             docSyntacticParsing(curSentence);
         }
     }
