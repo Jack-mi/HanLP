@@ -13,7 +13,7 @@ import com.hankcs.hanlp.seg.common.Term;
 
 import java.util.*;
 
-public class relation_extraction {
+public class RelationExtraction {
 
     // 测试句子
     public static String s1 = (
