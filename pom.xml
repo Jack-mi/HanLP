@@ -113,6 +113,22 @@
     </properties>
     <dependencies>
         <dependency>
+            <groupId>local</groupId>
+            <artifactId>contentextractor</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/contentextractor-1.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>local</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.7.3</version>
+            <type>jar</type>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/jsoup-1.7.3.jar</systemPath>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
