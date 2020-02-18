@@ -1,15 +1,9 @@
 package com.lxs;
 
-import com.hankcs.hanlp.corpus.document.sentence.Sentence;
-import com.hankcs.hanlp.corpus.document.sentence.word.IWord;
-import com.hankcs.hanlp.corpus.tag.Nature;
-import com.hankcs.hanlp.model.perceptron.*;
-import com.hankcs.hanlp.corpus.tag.Nature;
 import com.hankcs.hanlp.corpus.dependency.CoNll.CoNLLSentence;
 import com.hankcs.hanlp.corpus.dependency.CoNll.CoNLLWord;
 import com.hankcs.hanlp.dependency.IDependencyParser;
 import com.hankcs.hanlp.dependency.nnparser.NeuralNetworkDependencyParser;
-import com.hankcs.hanlp.seg.common.Term;
 
 import java.util.*;
 
@@ -27,7 +21,7 @@ public class RelationExtraction {
             "PEG（软件性能测试） \n" +
             "性能工程团队是恒天旗下专门从事性能工程领域研究与实践的团队，主要为国内外客户提供性能测试、性能调优、性能测试监理、性能测试培训等性能工程领域的服务。恒天性能工程团队已经在性能测试专业化和多个领域测试上积累了丰富经验，已累计完成200余个性能项目。"
     );
-    public static String s2 = ("");
+    public static String s2 = ("     图2：活动现场   未来，恒天软件将持续深耕区块链底层技术的研究，加大自主创新投入力度，推动产业创新发展，致力成为区块链技术领域值得信赖的技术及解决方案合作伙伴");
     public static String st1 = ("IMS团队致力于为客户提供高效、高品质服务，提供专业的一站式企业基础设施和IT运维解决方案");
     public static String st2 = ("团队服务专家拥有国际通行的专业认证，如OCP、CCNP、RHCE、MCSE、ITIL、ICSD、JIA、JIS等");
     public static String st3 = ("恒天软件拥有CMMI软件质量管理五级资质及CNAS资质认证，团队聚集了一批技术经验丰富、自主创新能力强的研发队伍，在软件质量保证领域有非常成熟的技术能力，致力于为客户提供贯穿于整个软件开发生命周期的专业软件测试、咨询及评估服务");
@@ -70,7 +64,7 @@ public class RelationExtraction {
 
         // 分割句子
         initialSentence = initialSentence.trim();
-        sentenceInput = initialSentence.split("!|。|\n");
+        sentenceInput = initialSentence.split("!|。");
     }
 
     private static String findVerbPreSupplement(CoNLLWord verb) {
@@ -266,11 +260,12 @@ public class RelationExtraction {
     }
 
     public static void main(String[] args) throws Exception {
-        initialParameters(s1);
+        String url ="http://sharepoint/Pressroom/Lists/Announcements/DispForm.aspx?ID=881&Source=http%3A%2F%2Fsharepoint%2FPressroom%2FLists%2FAnnouncements%2FAllItems%2Easpx";
+        String content = Html2Doc.Get_Content(url);
+        initialParameters(content);
         for (int i = 0; i < sentenceInput.length; i++) {
             System.out.printf("---------------------------No.%d---------------------------\n",i);
             curSentence = sentenceInput[i];
-            System.out.println(curSentence);
             // 句式处理
             rel = "";
             source = "";
@@ -278,7 +273,16 @@ public class RelationExtraction {
             des = "";
             sup = "";
             fin1 = false;
+            // 去除“图片描述”，规整句式
+            if (curSentence.contains("图1") || curSentence.contains("图2") || curSentence.contains("图3") || curSentence.contains("图4") || curSentence.contains("图5")) {
+                int start = curSentence.indexOf("图");
+                while(curSentence.charAt(start) != ' ') {
+                    start ++;
+                }
+                curSentence = curSentence.substring(start);
+            }
             curSentence = curSentence.trim();
+            System.out.println(curSentence);
             docSyntacticParsing(curSentence);
         }
     }
