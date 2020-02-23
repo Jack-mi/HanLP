@@ -21,10 +21,13 @@ public class RelationExtraction {
             "PEG（软件性能测试） \n" +
             "性能工程团队是恒天旗下专门从事性能工程领域研究与实践的团队，主要为国内外客户提供性能测试、性能调优、性能测试监理、性能测试培训等性能工程领域的服务。恒天性能工程团队已经在性能测试专业化和多个领域测试上积累了丰富经验，已累计完成200余个性能项目。"
     );
-    public static String s2 = ("     图2：活动现场   未来，恒天软件将持续深耕区块链底层技术的研究，加大自主创新投入力度，推动产业创新发展，致力成为区块链技术领域值得信赖的技术及解决方案合作伙伴");
-    public static String st1 = ("IMS团队致力于为客户提供高效、高品质服务，提供专业的一站式企业基础设施和IT运维解决方案");
-    public static String st2 = ("团队服务专家拥有国际通行的专业认证，如OCP、CCNP、RHCE、MCSE、ITIL、ICSD、JIA、JIS等");
-    public static String st3 = ("恒天软件拥有CMMI软件质量管理五级资质及CNAS资质认证，团队聚集了一批技术经验丰富、自主创新能力强的研发队伍，在软件质量保证领域有非常成熟的技术能力，致力于为客户提供贯穿于整个软件开发生命周期的专业软件测试、咨询及评估服务");
+    public static String s2 = ("第二届中国国际进口博览会(以下简称：进博会)近日在上海开幕，来自170多个国家和地区的3000多家企业、约50万专业采购商齐聚上海。期间举办的11月6日浙江-德国（欧洲）数字经济和高新技术产业高峰对接会上，浙大网新副总裁兼CTO、恒天软件首席执行官周波先生应邀进行了“数字重塑产业和贸易创新”主题演讲。\n" +
+        "当今世界，全球价值链、供应链深入发展，新一轮科技革命和产业变革正处在实现重大突破的历史关口。周波在演讲中回顾了浙江20年的经济发展历程，并将这20年总结为外向型经济高速成长、制造业转型升级和内需市场由“量”向“质”转型三个阶段。周波强调，在以浙江为代表的中国经济发展20年中，信息技术和数字技术的发展起到了巨大的作用。从2000年起我国的内需市场开始逐渐形成，互联网产业积极探索，一大批优秀的创业公司成立，到2010年左右浙江兴起的“机器换人”，再到2015年后我国的“互联网+”走出了自己独特的发展道路，数字技术不断以自身的革新驱动着浙江和中国经济的发展，推动了贸易的转型升级。\n" +
+        "在谈到经济外向型发展时期时，周波以浙大网新和美国道富集团共同成立恒天软件为例，讲述那一时期中国科技企业在技术外包的发展情况。在金融危机之后，周波以恒天软件见证并协助CFETS（中国外汇交易中心）构建了中国货币市场金融标准及相关基础核心系统建设为例，阐述了新时期的中国政府、中国企业有了更强的自主意识，中国构建自己的标准和体系必要且迫切。他还分享了恒天软件与农夫山泉等国内品牌、与耐克等国际品牌合作探索中国市场的新零售创新系统，讲述了浙江企业在柔性制造和高效定制化客户服务体系中的大胆尝试。\n" +
+        "习近平主席说，进博会“交易的是商品和服务，交流的是文化和理念”。站在新的历史起点，我们应该共建开放合作、创新、共享的世界经济。恒天软件看准欧洲市场，带着技术积极“走出去”。去年在爱尔兰成立了子公司，通过切入Know Your Customer（简称KYC)这一细分领域，利用区块链技术在主要金融机构之间建立联盟链，通过区块链进行交易跟踪和智能合约实现自动化记账支付，帮助欧美金融机构在银行、基金业务实现反洗钱功能。未来公司将在软件开发与创新领域不断探索，以“一带一路”为作为公司海外业务发展的良好契机，积极推广和推动“中国方案”在欧洲落地，以此带动更广阔欧洲业务的发展，为更多国内外企业创造更大的科技价值，在贸易、科技全球化浪潮中开拓新篇章。");
+//    public static String st1 = ("IMS团队致力于为客户提供高效、高品质服务，提供专业的一站式企业基础设施和IT运维解决方案");
+//    public static String st2 = ("团队服务专家拥有国际通行的专业认证，如OCP、CCNP、RHCE、MCSE、ITIL、ICSD、JIA、JIS等");
+//    public static String st3 = ("恒天软件拥有CMMI软件质量管理五级资质及CNAS资质认证，团队聚集了一批技术经验丰富、自主创新能力强的研发队伍，在软件质量保证领域有非常成熟的技术能力，致力于为客户提供贯穿于整个软件开发生命周期的专业软件测试、咨询及评估服务");
 
     // 句法结构基本参数
     private static CoNLLSentence initalSentence;    // 初始文本
@@ -223,7 +226,8 @@ public class RelationExtraction {
                     // 抽取三元组
                     if (!source.isEmpty() && !rel.isEmpty() && !des.isEmpty()) {
                         triplenum++;
-                        System.out.printf("triple[%d](%s : %s : %s)\n", triplenum, source, rel, des);
+                        System.out.printf("triple[%d]( : %s : )\n", triplenum, rel);
+//                        System.out.printf("triple[%d](%s : %s : %s)\n", triplenum, source, rel, des);
                     }
 
                 } else {
@@ -251,7 +255,8 @@ public class RelationExtraction {
                     // 抽取三元组
                     if (!source.isEmpty() && !rel.isEmpty() && !des.isEmpty()) {
                         triplenum++;
-                        System.out.printf("triple[%d](%s : %s : %s)\n", triplenum, source, rel, des);
+//                        System.out.printf("triple[%d](%s : %s : %s)\n", triplenum, source, rel, des);
+                        System.out.printf("triple[%d]( : %s : )\n", triplenum, rel);
                     }
                 }
 
@@ -260,9 +265,9 @@ public class RelationExtraction {
     }
 
     public static void main(String[] args) throws Exception {
-        String url ="http://sharepoint/Pressroom/Lists/Announcements/DispForm.aspx?ID=881&Source=http%3A%2F%2Fsharepoint%2FPressroom%2FLists%2FAnnouncements%2FAllItems%2Easpx";
-        String content = Html2Doc.Get_Content(url);
-        initialParameters(content);
+//        String url ="http://sharepoint/Pressroom/Lists/Announcements/DispForm.aspx?ID=881&Source=http%3A%2F%2Fsharepoint%2FPressroom%2FLists%2FAnnouncements%2FAllItems%2Easpx";
+//        String content = Html2Doc.Get_Content(url);
+        initialParameters(s1);
         for (int i = 0; i < sentenceInput.length; i++) {
             System.out.printf("---------------------------No.%d---------------------------\n",i);
             curSentence = sentenceInput[i];
